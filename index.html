@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prochain Passage de Bus</title>
+    <title>Prochains Départs de Bus</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,15 +33,22 @@
             font-size: 16px;
         }
 
-        #next-bus {
+        #schedule-list {
             margin-top: 20px;
             font-size: 18px;
-            font-weight: bold;
-            color: #4CAF50;
         }
 
-        #next-bus.no-bus {
-            color: #FF6347;
+        #schedule-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #schedule-list li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
         }
 
         #loading {
@@ -53,7 +60,7 @@
 </head>
 
 <body>
-    <h1>Prochain Passage de Bus</h1>
+    <h1>Prochains Départs de Bus</h1>
     <div id="bus-schedule">
         <select id="stop-select">
             <option value="Andrézieux">Andrézieux</option>
@@ -61,10 +68,10 @@
             <option value="Aéroport">Aéroport</option>
             <option value="Centre Ville">Centre Ville</option>
         </select>
-        <button onclick="showNextBus()">Voir le prochain passage</button>
+        <button onclick="showSchedule()">Voir les prochains départs</button>
 
         <div id="loading">Chargement des horaires...</div>
-        <div id="next-bus"></div>
+        <div id="schedule-list"></div>
     </div>
 
     <script>
@@ -88,41 +95,31 @@
             }
         };
 
-        async function showNextBus() {
+        function showSchedule() {
             const selectedStop = document.getElementById("stop-select").value;
             const loadingElement = document.getElementById("loading");
-            const nextBusElement = document.getElementById("next-bus");
+            const scheduleListElement = document.getElementById("schedule-list");
 
             loadingElement.style.display = "block"; // Afficher le message de chargement
-            nextBusElement.style.display = "none"; // Cacher le message du prochain bus
+            scheduleListElement.style.display = "none"; // Cacher la liste des horaires
 
-            const now = new Date();
-            const currentTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-            let nextTime = null;
-
-            // Rechercher l'heure du prochain passage après l'heure actuelle
-            Object.keys(horaires[selectedStop]).forEach(destination => {
-                const schedule = horaires[selectedStop][destination];
-                for (let time of schedule) {
-                    if (time > currentTime) {
-                        nextTime = time;
-                        break;
-                    }
-                }
-            });
-
+            // Attendre 1 seconde pour simuler un délai de chargement
             setTimeout(() => {
                 loadingElement.style.display = "none"; // Cacher le message de chargement
-                if (nextTime) {
-                    nextBusElement.textContent = `Le prochain passage est à ${nextTime}`;
-                    nextBusElement.classList.remove('no-bus');
+                const destinations = horaires[selectedStop];
+                if (destinations) {
+                    let scheduleHTML = "<h3>Prochains départs depuis " + selectedStop + ":</h3><ul>";
+                    for (const destination in destinations) {
+                        scheduleHTML += "<li><strong>" + destination + ":</strong> " + destinations[destination].join(", ") + "</li>";
+                    }
+                    scheduleHTML += "</ul>";
+                    scheduleListElement.innerHTML = scheduleHTML;
+                    scheduleListElement.style.display = "block"; // Afficher la liste des horaires
                 } else {
-                    nextBusElement.textContent = "Pas de passage disponible.";
-                    nextBusElement.classList.add('no-bus');
+                    scheduleListElement.innerHTML = "Aucun départ disponible pour cet arrêt.";
+                    scheduleListElement.style.display = "block";
                 }
-                nextBusElement.style.display = "block"; // Afficher le message du prochain bus
-            }, 1000); // Simulation d'un délai de chargement
+            }, 1000);
         }
     </script>
 </body>
