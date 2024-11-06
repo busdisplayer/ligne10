@@ -1,70 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi des Bus</title>
+    <title>Prochain Passage de Bus</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f0f0;
         }
-        .bus-info {
-            margin-bottom: 20px;
+
+        h1 {
+            color: #333;
+        }
+
+        #bus-schedule {
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        select, button {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #next-bus {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        #next-bus.no-bus {
+            color: #FF6347;
+        }
+
+        #loading {
+            font-size: 18px;
+            color: #333;
+            display: none;
         }
     </style>
 </head>
+
 <body>
-    <h1>Suivi en temps réel des Bus</h1>
-    <div class="bus-info" id="busA">
-        <h2>Prochain départ de Terminal A</h2>
-        <p id="nextBusA">Chargement...</p>
-    </div>
-    <div class="bus-info" id="busB">
-        <h2>Prochain départ de Terminal B</h2>
-        <p id="nextBusB">Chargement...</p>
-    </div>
-    <div class="bus-info" id="realTimeUpdate">
-        <h2>Position en temps réel</h2>
-        <p id="currentStatus">Chargement...</p>
+    <h1>Prochain Passage de Bus</h1>
+    <div id="bus-schedule">
+        <select id="stop-select">
+            <option value="Andrézieux">Andrézieux</option>
+            <option value="Saint-Just Saint-Rambert">Saint-Just Saint-Rambert</option>
+            <option value="Aéroport">Aéroport</option>
+            <option value="Centre Ville">Centre Ville</option>
+        </select>
+        <button onclick="showNextBus()">Voir le prochain passage</button>
+
+        <div id="loading">Chargement des horaires...</div>
+        <div id="next-bus"></div>
     </div>
 
     <script>
-        // Horaires simulés des bus pour les terminaux A et B
-        const scheduleA = ["05:15", "06:15", "07:15", "08:15", "09:15", "10:15", "11:15", "12:15", "13:15", "14:15", "15:15", "16:15", "17:15", "18:15", "19:15", "20:15"];
-        const scheduleB = ["06:21", "07:21", "08:21", "09:21", "10:21", "11:21", "12:21", "13:21", "14:21", "15:21", "16:21", "17:21", "18:21", "19:21", "20:21", "21:21"];
-
-        function getNextBus(schedule) {
-            const now = new Date();
-            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            for (let time of schedule) {
-                if (time > currentTime) {
-                    return time;
-                }
+        // Simuler un fichier JSON avec les horaires des bus
+        const horaires = {
+            "Andrézieux": {
+                "Aéroport": ["05:15", "06:15", "07:15", "08:15", "09:15", "10:15", "11:15", "12:15", "13:15", "14:15", "15:15", "16:15", "17:15", "18:15", "19:15", "20:15"],
+                "Saint-Just": ["05:30", "06:30", "07:30", "08:30", "09:30", "10:30", "11:30", "12:30", "13:30", "14:30", "15:30", "16:30", "17:30", "18:30", "19:30", "20:30"]
+            },
+            "Saint-Just Saint-Rambert": {
+                "Aéroport": ["05:45", "06:45", "07:45", "08:45", "09:45", "10:45", "11:45", "12:45", "13:45", "14:45", "15:45", "16:45", "17:45", "18:45", "19:45", "20:45"],
+                "Centre Ville": ["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"]
+            },
+            "Aéroport": {
+                "Andrézieux": ["05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"],
+                "Saint-Just": ["06:10", "07:10", "08:10", "09:10", "10:10", "11:10", "12:10", "13:10", "14:10", "15:10", "16:10", "17:10", "18:10", "19:10", "20:10"]
+            },
+            "Centre Ville": {
+                "Saint-Just": ["05:10", "06:10", "07:10", "08:10", "09:10", "10:10", "11:10", "12:10", "13:10", "14:10", "15:10", "16:10", "17:10", "18:10", "19:10", "20:10"],
+                "Aéroport": ["05:25", "06:25", "07:25", "08:25", "09:25", "10:25", "11:25", "12:25", "13:25", "14:25", "15:25", "16:25", "17:25", "18:25", "19:25", "20:25"]
             }
-            return "Aucun autre départ aujourd'hui";
-        }
+        };
 
-        function updateBusInfo() {
-            document.getElementById("nextBusA").textContent = `Prochain départ : ${getNextBus(scheduleA)}`;
-            document.getElementById("nextBusB").textContent = `Prochain départ : ${getNextBus(scheduleB)}`;
-        }
+        async function showNextBus() {
+            const selectedStop = document.getElementById("stop-select").value;
+            const loadingElement = document.getElementById("loading");
+            const nextBusElement = document.getElementById("next-bus");
 
-        function updateRealTimeStatus() {
-            // Simulation d'une mise à jour de la position du bus
-            const status = ["À la station Andrézieux", "En route vers Avenue Boucher", "À l'arrêt Rue Racine", "À la station Firminy"];
-            const randomStatus = status[Math.floor(Math.random() * status.length)];
-            document.getElementById("currentStatus").textContent = `Le bus est actuellement : ${randomStatus}`;
-        }
+            loadingElement.style.display = "block"; // Afficher le message de chargement
+            nextBusElement.style.display = "none"; // Cacher le message du prochain bus
 
-        // Mettre à jour les informations toutes les 30 secondes
-        updateBusInfo();
-        updateRealTimeStatus();
-        setInterval(() => {
-            updateBusInfo();
-            updateRealTimeStatus();
-        }, 30000);
+            const now = new Date();
+            const currentTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            let nextTime = null;
+
+            // Rechercher l'heure du prochain passage après l'heure actuelle
+            Object.keys(horaires[selectedStop]).forEach(destination => {
+                const schedule = horaires[selectedStop][destination];
+                for (let time of schedule) {
+                    if (time > currentTime) {
+                        nextTime = time;
+                        break;
+                    }
+                }
+            });
+
+            setTimeout(() => {
+                loadingElement.style.display = "none"; // Cacher le message de chargement
+                if (nextTime) {
+                    nextBusElement.textContent = `Le prochain passage est à ${nextTime}`;
+                    nextBusElement.classList.remove('no-bus');
+                } else {
+                    nextBusElement.textContent = "Pas de passage disponible.";
+                    nextBusElement.classList.add('no-bus');
+                }
+                nextBusElement.style.display = "block"; // Afficher le message du prochain bus
+            }, 1000); // Simulation d'un délai de chargement
+        }
     </script>
 </body>
+
 </html>
