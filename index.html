@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi des Bus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .bus-info {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Suivi en temps réel des Bus</h1>
+    <div class="bus-info" id="busA">
+        <h2>Prochain départ de Terminal A</h2>
+        <p id="nextBusA">Chargement...</p>
+    </div>
+    <div class="bus-info" id="busB">
+        <h2>Prochain départ de Terminal B</h2>
+        <p id="nextBusB">Chargement...</p>
+    </div>
+    <div class="bus-info" id="realTimeUpdate">
+        <h2>Position en temps réel</h2>
+        <p id="currentStatus">Chargement...</p>
+    </div>
+
+    <script>
+        // Horaires simulés des bus pour les terminaux A et B
+        const scheduleA = ["05:15", "06:15", "07:15", "08:15", "09:15", "10:15", "11:15", "12:15", "13:15", "14:15", "15:15", "16:15", "17:15", "18:15", "19:15", "20:15"];
+        const scheduleB = ["06:21", "07:21", "08:21", "09:21", "10:21", "11:21", "12:21", "13:21", "14:21", "15:21", "16:21", "17:21", "18:21", "19:21", "20:21", "21:21"];
+
+        function getNextBus(schedule) {
+            const now = new Date();
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            for (let time of schedule) {
+                if (time > currentTime) {
+                    return time;
+                }
+            }
+            return "Aucun autre départ aujourd'hui";
+        }
+
+        function updateBusInfo() {
+            document.getElementById("nextBusA").textContent = `Prochain départ : ${getNextBus(scheduleA)}`;
+            document.getElementById("nextBusB").textContent = `Prochain départ : ${getNextBus(scheduleB)}`;
+        }
+
+        function updateRealTimeStatus() {
+            // Simulation d'une mise à jour de la position du bus
+            const status = ["À la station Andrézieux", "En route vers Avenue Boucher", "À l'arrêt Rue Racine", "À la station Firminy"];
+            const randomStatus = status[Math.floor(Math.random() * status.length)];
+            document.getElementById("currentStatus").textContent = `Le bus est actuellement : ${randomStatus}`;
+        }
+
+        // Mettre à jour les informations toutes les 30 secondes
+        updateBusInfo();
+        updateRealTimeStatus();
+        setInterval(() => {
+            updateBusInfo();
+            updateRealTimeStatus();
+        }, 30000);
+    </script>
+</body>
+</html>
